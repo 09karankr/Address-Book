@@ -1,9 +1,5 @@
 package com.bridgelabz.AddressBook.service;
 
-
-
-
-
 import com.bridgelabz.AddressBook.dto.AddressBookDTO;
 import com.bridgelabz.AddressBook.model.AddressBookEntry;
 import com.bridgelabz.AddressBook.repository.AddressBookRepository;
@@ -14,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
+@Service  // Marks this as a Service component
 public class AddressBookService {
 
     @Autowired
@@ -63,5 +59,3 @@ public class AddressBookService {
         return false;
     }
 }
-
-

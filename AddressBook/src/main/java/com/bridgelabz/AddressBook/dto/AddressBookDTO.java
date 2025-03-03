@@ -11,4 +11,5 @@ public class AddressBookDTO {
     private String name;
     private String email;
     private String phoneNumber;
+    private String address;
 }

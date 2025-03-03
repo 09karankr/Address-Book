@@ -1,61 +1,67 @@
 package com.bridgelabz.AddressBook.service;
 
+
 import com.bridgelabz.AddressBook.dto.AddressBookDTO;
 import com.bridgelabz.AddressBook.model.AddressBookEntry;
-import com.bridgelabz.AddressBook.repository.AddressBookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicLong;
 
-@Service  // Marks this as a Service component
+@Service
 public class AddressBookService {
 
-    @Autowired
-    private AddressBookRepository repository;
-
-    // Convert Entity to DTO
-    private AddressBookDTO convertToDTO(AddressBookEntry entry) {
-        return new AddressBookDTO(entry.getName(), entry.getEmail(), entry.getPhoneNumber());
-    }
+    private final List<AddressBookEntry> addressBook = new ArrayList<>();
+    private final AtomicLong counter = new AtomicLong(1);  // Unique ID generator
 
     // Convert DTO to Entity
     private AddressBookEntry convertToEntity(AddressBookDTO dto) {
-        return new AddressBookEntry(null, dto.getName(), dto.getEmail(), dto.getPhoneNumber(), null);
+        return new AddressBookEntry(counter.getAndIncrement(), dto.getName(), dto.getEmail(), dto.getPhoneNumber(), dto.getAddress());
     }
 
+    // Convert Entity to DTO
+    private AddressBookDTO convertToDTO(AddressBookEntry entry) {
+        return new AddressBookDTO(entry.getName(), entry.getEmail(), entry.getPhoneNumber(), entry.getAddress());
+    }
+
+    // GET all contacts
     public List<AddressBookDTO> getAllContacts() {
-        return repository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return addressBook.stream().map(this::convertToDTO).toList();
     }
 
+    // GET contact by ID
     public Optional<AddressBookDTO> getContactById(Long id) {
-        return repository.findById(id).map(this::convertToDTO);
+        return addressBook.stream()
+                .filter(entry -> entry.getId().equals(id))
+                .map(this::convertToDTO)
+                .findFirst();
     }
 
+    // POST - Add a new contact
     public AddressBookDTO addContact(AddressBookDTO dto) {
-        AddressBookEntry savedEntry = repository.save(convertToEntity(dto));
-        return convertToDTO(savedEntry);
+        AddressBookEntry newEntry = convertToEntity(dto);
+        addressBook.add(newEntry);
+        return convertToDTO(newEntry);
     }
 
+    // PUT - Update a contact by ID
     public Optional<AddressBookDTO> updateContact(Long id, AddressBookDTO updatedDTO) {
-        return repository.findById(id).map(existingEntry -> {
-            existingEntry.setName(updatedDTO.getName());
-            existingEntry.setEmail(updatedDTO.getEmail());
-            existingEntry.setPhoneNumber(updatedDTO.getPhoneNumber());
-            AddressBookEntry savedEntry = repository.save(existingEntry);
-            return convertToDTO(savedEntry);
-        });
+        return addressBook.stream()
+                .filter(entry -> entry.getId().equals(id))
+                .findFirst()
+                .map(existingEntry -> {
+                    existingEntry.setName(updatedDTO.getName());
+                    existingEntry.setEmail(updatedDTO.getEmail());
+                    existingEntry.setPhoneNumber(updatedDTO.getPhoneNumber());
+                    existingEntry.setAddress(updatedDTO.getAddress());
+                    return convertToDTO(existingEntry);
+                });
     }
 
+    // DELETE - Remove a contact by ID
     public boolean deleteContact(Long id) {
-        if (repository.existsById(id)) {
-            repository.deleteById(id);
-            return true;
-        }
-        return false;
+        return addressBook.removeIf(entry -> entry.getId().equals(id));
     }
 }

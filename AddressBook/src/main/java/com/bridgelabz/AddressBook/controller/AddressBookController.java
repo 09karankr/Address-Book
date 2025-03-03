@@ -15,7 +15,7 @@ import java.util.Optional;
 public class AddressBookController {
 
     @Autowired
-    private AddressBookService service;
+    private AddressBookService service;  // ✅ Inject Service Layer
 
     // 1️⃣ GET all contacts
     @GetMapping
